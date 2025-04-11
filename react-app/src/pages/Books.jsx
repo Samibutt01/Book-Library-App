@@ -5,85 +5,94 @@ import myHeaders, { API_URL } from "../utils/api"
 import { Link } from "react-router-dom"
 import htmlDecode from "../utils/decodeHtml"
 import Spinner from "../components/spinner"
+import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline"
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 
 function Books() {
-    console.log(import.meta.env.API_URL) 
-    // array to hold a list of authors received from the server
     const [authorList, setAuthors] = useState([])
-    // array to hold a list of books received from the server
     const [bookList, setBooks] = useState([])
     const [pagination, setPagination] = useState()
-
-    // boolean to show/hide the create author form modal
     const [isOpen, setIsOpen] = useState(false)
-
-    // boolean to show/hide a progress bar when making an api call
     const [isLoading, setIsLoading] = useState(false)
+    const [isEditMode, setIsEditMode] = useState(false)
+    const [currentBook, setCurrentBook] = useState(null)
 
-    /**
-     * initialize form components
-     * register: for form validation
-     * formState: to access validation errors
-     * handleSubmit: handles the submit event of the form
-     */
-    const {register, handleSubmit, formState: { errors }} = useForm()
+    const {register, handleSubmit, formState: { errors }, reset} = useForm()
 
-    /**
-     * handle form submit event
-     */
     const onSubmitBook = (data) => {
-
-        console.log(JSON.stringify(data))
-
-        // show a progress bar
         setIsLoading(true)
         
-        /**
-         * prepare request options
-         * add headers, request method etc
-         */
-        var requestOptions = {
-            method: 'POST',
+        const method = isEditMode ? 'PUT' : 'POST'
+        const endpoint = isEditMode ? `books/${currentBook.id}` : 'books'
+
+        const requestOptions = {
+            method: method,
             headers: myHeaders,
             body: JSON.stringify(data),
             redirect: 'follow'
         }
 
-        // make a request to the api
-        fetch(API_URL + "books", requestOptions)
+        fetch(API_URL + endpoint, requestOptions)
             .then(response => {
-                // on response received from the request
-                response.text()
-                // close the form modal
                 setIsOpen(false)
-                // hide progress bar
                 setIsLoading(false)
-                // reload the books table
                 getBooks(API_URL + "books")
+                reset()
             })
             .then(result => console.log(result))
             .catch(error => {
-                // on request error
                 console.log('error', error)
-                // hide the loading progress bar
                 setIsLoading(false)
             })
     }
 
+    const handleDelete = (bookId) => {
+        if (window.confirm('Are you sure you want to delete this book?')) {
+            setIsLoading(true)
+            
+            const requestOptions = {
+                method: 'DELETE',
+                headers: myHeaders,
+                redirect: 'follow'
+            }
+
+            fetch(API_URL + `books/${bookId}`, requestOptions)
+                .then(response => {
+                    setIsLoading(false)
+                    getBooks(API_URL + "books")
+                })
+                .catch(error => {
+                    console.log('error', error)
+                    setIsLoading(false)
+                })
+        }
+    }
+
+    const handleEdit = (book) => {
+        setCurrentBook(book)
+        setIsEditMode(true)
+        reset({
+            name: book.name,
+            isbn: book.isbn,
+            author_id: book.author?.id
+        })
+        setIsOpen(true)
+    }
+
     function nextPage(link) {
-        
-        console.log(link)
         if (link["url"] != null && !link["active"]) {
-            getAuthors(link["url"])
+            getBooks(link["url"])
         }
     }
 
     function closeModal() {
         setIsOpen(false)
+        setIsEditMode(false)
+        setCurrentBook(null)
+        reset()
     }
 
     function openModal() {
@@ -97,11 +106,8 @@ function Books() {
 
     function getBooks(url) {
         fetch(url)
-            .then((res) => {
-                return res.json()
-            })
+            .then((res) => res.json())
             .then((data) => {
-                console.log(data["data"])
                 setBooks(data["data"])
                 setPagination(data["meta"])
             })
@@ -109,11 +115,8 @@ function Books() {
 
     function getAuthors() {
         fetch(API_URL + "authors")
-            .then((res) => {
-                return res.json()
-            })
+            .then((res) => res.json())
             .then((data) => {
-                console.log(data["data"])
                 setAuthors(data["data"])
             })
     }
@@ -124,8 +127,6 @@ function Books() {
                 <Spinner/>
             :
                 <div>
-
-                    {/* display a table to list the books */}
                     <div className="relative overflow-x-auto shadow-md sm:rounded-lg border border-gray-100">
                         <div className="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between p-4">
                             <div></div>
@@ -158,7 +159,7 @@ function Books() {
                                         Author
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        <span className="sr-only">View</span>
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
@@ -174,12 +175,28 @@ function Books() {
                                     <td className="px-6 py-4">
                                         {book["author"] && <span>{book["author"]["name"]}</span>}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <Link to={'/books/' + book["id"]} className="font-medium text-blue-600 dark:text-blue-500 hover:underline">View</Link>
+                                    <td className="px-6 py-4 flex items-center space-x-2">
+                                        <button
+                                            onClick={() => handleEdit(book)}
+                                            className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                                        >
+                                            <PencilSquareIcon className="h-5 w-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(book.id)}
+                                            className="font-medium text-red-600 dark:text-red-500 hover:underline"
+                                        >
+                                            <TrashIcon className="h-5 w-5" />
+                                        </button>
+                                        <Link 
+                                            to={'/books/' + book["id"]} 
+                                            className="font-medium text-green-600 dark:text-green-500 hover:underline"
+                                        >
+                                            View
+                                        </Link>
                                     </td>
                                 </tr>
                             )}
-                                
                             </tbody>
                         </table>
                         {pagination != null &&
@@ -192,11 +209,8 @@ function Books() {
                                     </span>
                                 </span>
                                 <ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
-                                    
                                     {pagination["links"].map((link, index) => 
-                                        <li
-                                            key={index}
-                                        >
+                                        <li key={index}>
                                             <button                                                
                                                 className={
                                                     classNames(
@@ -218,13 +232,11 @@ function Books() {
                                             </button>
                                         </li>
                                     )}
-                                                                        
                                 </ul>
                             </nav>
                         }
                     </div>
 
-                    {/* show a form to create a book in a dialog */}
                     <Transition appear show={isOpen} as={Fragment}>
                         <Dialog as="div" className="relative z-10" onClose={closeModal}>
                         <Transition.Child
@@ -255,7 +267,7 @@ function Books() {
                                     as="h3"
                                     className="text-lg font-medium leading-6 text-gray-900 pb-4"
                                 >
-                                    Create a book
+                                    {isEditMode ? 'Edit Book' : 'Create Book'}
                                 </Dialog.Title>
                                 <form onSubmit={handleSubmit(onSubmitBook)} className="flex flex-col space-y-4">
                                     <div className="mt-2 flex flex-col space-y-8 w-full">
@@ -264,7 +276,7 @@ function Books() {
                                                 {...register("name", {required: {value: true, message: 'Required'}})}
                                                 type="text"
                                                 className="input"
-                                                placeholder="Author name" />
+                                                placeholder="Book title" />
                                                 {errors.name && <p className="input-error">{errors.name.message}</p>}
                                         </div>
 
@@ -292,31 +304,30 @@ function Books() {
                                             {errors.author_id && <p className="input-error">{errors.author_id.message}</p>}
                                         </div>
 
-                                        </div>
+                                    </div>
 
-                                        <div className="mt-4 flex flex-row space-x-4">
-                                            <button
-                                                type="button"
-                                                className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                                                onClick={closeModal}
-                                                >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                className="inline-flex justify-center rounded-md border border-transparent bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                                                >
-                                                Save
-                                            </button>
-                                        </div>
-                                    </form>
+                                    <div className="mt-4 flex flex-row space-x-4">
+                                        <button
+                                            type="button"
+                                            className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                            onClick={closeModal}
+                                            >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="inline-flex justify-center rounded-md border border-transparent bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                            >
+                                            {isEditMode ? 'Update' : 'Save'}
+                                        </button>
+                                    </div>
+                                </form>
                                 </Dialog.Panel>
                             </Transition.Child>
                             </div>
                         </div>
                         </Dialog>
                     </Transition>
-
                 </div>
             }
         </>

@@ -5,83 +5,89 @@ import myHeaders, { API_URL } from "../utils/api"
 import { Link } from "react-router-dom"
 import htmlDecode from "../utils/decodeHtml"
 import Spinner from "../components/spinner"
+import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline"
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
 function Authors() {
-
-    // array to hold a list of authors received from the server
     const [authorList, setAuthors] = useState([])
     const [pagination, setPagination] = useState()
-
-    // boolean to show/hide the create author form modal
     const [isOpen, setIsOpen] = useState(false)
-
-    // boolean to show/hide a progress bar when making an api call
     const [isLoading, setIsLoading] = useState(false)
+    const [isEditMode, setIsEditMode] = useState(false)
+    const [currentAuthor, setCurrentAuthor] = useState(null)
 
-    /**
-     * initialize form components
-     * register: for form validation
-     * formState: to access validation errors
-     * handleSubmit: handles the submit event of the form
-     */
-    const {register, handleSubmit, formState: { errors }} = useForm()
+    const {register, handleSubmit, formState: { errors }, reset} = useForm()
 
-    /**
-     * app data
-     * used for form dropdown inputs for gender/country
-     */
     const gender = ["Male", "Female"]
     const countries = ["Kenya", "Cananda", "Japan", "France"]
 
-    /**
-     * handle form submit event
-     */
     const onSubmit = (data) => {
-
-        console.log(JSON.stringify(data))
-
-        // show a progress bar
         setIsLoading(true)
         
-        /**
-         * prepare request options
-         * add headers, request method etc
-         */
-        var requestOptions = {
-            method: 'POST',
+        let requestOptions = {
+            method: isEditMode ? 'PUT' : 'POST',
             headers: myHeaders,
             body: JSON.stringify(data),
             redirect: 'follow'
         }
 
-        // make a request to the api
-        fetch(API_URL + "authors", requestOptions)
+        const endpoint = isEditMode 
+            ? `authors/${currentAuthor.id}` 
+            : "authors"
+
+        fetch(API_URL + endpoint, requestOptions)
             .then(response => {
-                // on response received from the request
-                response.text()
-                // close the form modal
                 setIsOpen(false)
-                // hide progress bar
                 setIsLoading(false)
-                // reload the authors table
                 getAuthors(API_URL + "authors")
+                reset()
             })
             .then(result => console.log(result))
             .catch(error => {
-                // on request error
                 console.log('error', error)
-                // hide the loading progress bar
                 setIsLoading(false)
             })
     }
 
+    const handleDelete = (authorId) => {
+        if (window.confirm('Are you sure you want to delete this author?')) {
+            setIsLoading(true)
+            
+            const requestOptions = {
+                method: 'DELETE',
+                headers: myHeaders,
+                redirect: 'follow'
+            }
+
+            fetch(API_URL + `authors/${authorId}`, requestOptions)
+                .then(response => {
+                    setIsLoading(false)
+                    getAuthors(API_URL + "authors")
+                })
+                .catch(error => {
+                    console.log('error', error)
+                    setIsLoading(false)
+                })
+        }
+    }
+
+    const handleEdit = (author) => {
+        setCurrentAuthor(author)
+        setIsEditMode(true)
+        reset({
+            name: author.name,
+            gender: author.gender,
+            age: author.age,
+            country: author.country,
+            genre: author.genre
+        })
+        setIsOpen(true)
+    }
+
     function nextPage(link) {
-        
-        console.log(link)
         if (link["url"] != null && !link["active"]) {
             getAuthors(link["url"])
         }
@@ -89,6 +95,9 @@ function Authors() {
 
     function closeModal() {
         setIsOpen(false)
+        setIsEditMode(false)
+        setCurrentAuthor(null)
+        reset()
     }
 
     function openModal() {
@@ -101,11 +110,8 @@ function Authors() {
 
     function getAuthors(url) {
         fetch(url)
-            .then((res) => {
-                return res.json()
-            })
+            .then((res) => res.json())
             .then((data) => {
-                console.log(data["data"])
                 setAuthors(data["data"])
                 setPagination(data["meta"])
             })
@@ -117,8 +123,6 @@ function Authors() {
                 <Spinner />
             :
                 <div>
-
-                    {/* display a table to list the books */}
                     <div className="relative overflow-x-auto shadow-md sm:rounded-lg border border-gray-100">
                         <div className="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between p-4">
                             <div></div>
@@ -157,7 +161,7 @@ function Authors() {
                                         Genre
                                     </th>
                                     <th scope="col" className="px-6 py-3">
-                                        <span className="sr-only">View</span>
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
@@ -179,12 +183,28 @@ function Authors() {
                                     <td className="px-6 py-4">
                                         {author["genre"]}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <Link to={'/authors/' + author["id"]} className="font-medium text-blue-600 dark:text-blue-500 hover:underline">View</Link>
+                                    <td className="px-6 py-4 flex items-center space-x-2">
+                                        <button
+                                            onClick={() => handleEdit(author)}
+                                            className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                                        >
+                                            <PencilSquareIcon className="h-5 w-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(author.id)}
+                                            className="font-medium text-red-600 dark:text-red-500 hover:underline"
+                                        >
+                                            <TrashIcon className="h-5 w-5" />
+                                        </button>
+                                        <Link 
+                                            to={'/authors/' + author["id"]} 
+                                            className="font-medium text-green-600 dark:text-green-500 hover:underline"
+                                        >
+                                            View
+                                        </Link>
                                     </td>
                                 </tr>
                             )}
-                                
                             </tbody>
                         </table>
                         {pagination != null &&
@@ -197,11 +217,8 @@ function Authors() {
                                     </span>
                                 </span>
                                 <ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
-                                    
                                     {pagination["links"].map((link, index) => 
-                                        <li
-                                            key={index}
-                                        >
+                                        <li key={index}>
                                             <button                                                
                                                 className={
                                                     classNames(
@@ -223,13 +240,11 @@ function Authors() {
                                             </button>
                                         </li>
                                     )}
-                                                                        
                                 </ul>
                             </nav>
                         }
                     </div>
 
-                    {/* show a form to create a book in a dialog */}
                     <Transition appear show={isOpen} as={Fragment}>
                         <Dialog as="div" className="relative z-10" onClose={closeModal}>
                         <Transition.Child
@@ -260,7 +275,7 @@ function Authors() {
                                     as="h3"
                                     className="text-lg font-medium leading-6 text-gray-900 pb-4"
                                 >
-                                    Create Author
+                                    {isEditMode ? 'Edit Author' : 'Create Author'}
                                 </Dialog.Title>
                                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-4">
                                     <div className="mt-2 flex flex-col space-y-8 w-full">
@@ -335,7 +350,7 @@ function Authors() {
                                         type="submit"
                                         className="inline-flex justify-center rounded-md border border-transparent bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                                         >
-                                            Save
+                                            {isEditMode ? 'Update' : 'Save'}
                                         </button>
                                     </div>
                                 </form>

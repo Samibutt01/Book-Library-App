@@ -7,12 +7,13 @@ use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
-use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
     /**
-     * return a list of authors
+     * Return a paginated list of books with their authors
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index()
     {
@@ -20,7 +21,10 @@ class BookController extends Controller
     }
 
     /**
-     * return a single author
+     * Return a single book with its author
+     *
+     * @param Book $book
+     * @return BookResource
      */
     public function show(Book $book)
     {
@@ -29,7 +33,10 @@ class BookController extends Controller
     }
 
     /**
-     * create an author
+     * Create a new book
+     *
+     * @param StoreBookRequest $request
+     * @return BookResource
      */
     public function store(StoreBookRequest $request)
     {
@@ -38,12 +45,27 @@ class BookController extends Controller
     }
 
     /**
-     * update an author
+     * Update an existing book
+     *
+     * @param UpdateBookRequest $request
+     * @param Book $book
+     * @return BookResource
      */
     public function update(UpdateBookRequest $request, Book $book)
     {
         $book->update($request->validated());
-
         return BookResource::make($book);
+    }
+
+    /**
+     * Delete a book
+     *
+     * @param Book $book
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Book $book)
+    {
+        $book->delete();
+        return response()->noContent();
     }
 }

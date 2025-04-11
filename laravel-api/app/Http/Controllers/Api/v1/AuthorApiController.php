@@ -11,7 +11,9 @@ use App\Models\Author;
 class AuthorApiController extends Controller
 {
     /**
-     * return a list of authors
+     * Return a paginated list of authors
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index()
     {
@@ -19,7 +21,10 @@ class AuthorApiController extends Controller
     }
 
     /**
-     * return a single author
+     * Return a single author
+     *
+     * @param Author $author
+     * @return AuthorResource
      */
     public function show(Author $author)
     {
@@ -27,7 +32,10 @@ class AuthorApiController extends Controller
     }
 
     /**
-     * create an author
+     * Create a new author
+     *
+     * @param StoreAuthorRequest $request
+     * @return AuthorResource
      */
     public function store(StoreAuthorRequest $request)
     {
@@ -36,12 +44,27 @@ class AuthorApiController extends Controller
     }
 
     /**
-     * update an author
+     * Update an existing author
+     *
+     * @param UpdateAuthorRequest $request
+     * @param Author $author
+     * @return AuthorResource
      */
     public function update(UpdateAuthorRequest $request, Author $author)
     {
         $author->update($request->validated());
-
         return AuthorResource::make($author);
+    }
+
+    /**
+     * Delete an author
+     *
+     * @param Author $author
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Author $author)
+    {
+        $author->delete();
+        return response()->noContent();
     }
 }
