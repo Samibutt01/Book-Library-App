@@ -22,7 +22,7 @@ function Authors() {
     const {register, handleSubmit, formState: { errors }, reset} = useForm()
 
     const gender = ["Male", "Female"]
-    const countries = ["Kenya", "Cananda", "Japan", "France"]
+    const countries = ["UK", "Cananda", "Japan", "France"]
 
     const onSubmit = (data) => {
         setIsLoading(true)
