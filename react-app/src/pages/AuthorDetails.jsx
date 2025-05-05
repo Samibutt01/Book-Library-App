@@ -1,22 +1,18 @@
 import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, Link } from "react-router-dom"
 import Spinner from "../components/spinner"
 import { API_URL } from "../utils/api"
+import { BookOpenIcon, ArrowLeftIcon } from "@heroicons/react/24/outline"
 
 function AuthorDetails() {
-
-    const [ isLoading, setIsLoading ] = useState(false)
-    const [ author, setAuthor ] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [author, setAuthor] = useState(null)
     const { id } = useParams()
 
     useEffect(() => {
-
         setIsLoading(true)
-
         fetch(API_URL + 'authors/' + id)
-            .then((res) => {
-                return res.json()
-            })
+            .then((res) => res.json())
             .then((data) => {
                 setAuthor(data)
                 setIsLoading(false)
@@ -25,63 +21,111 @@ function AuthorDetails() {
                 console.log(e)
                 setIsLoading(false)
             })
-    }, [])
+    }, [id])
 
     return (
-        <>
-        {isLoading ?                
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+            {isLoading ?                
                 <Spinner />
             :
-            <div className="">
-                {author != null && 
-                    <div className="flex justify-center items-center">                    
+                author && (
+                    <div className="max-w-4xl mx-auto">
+                        <div className="mb-6">
+                            <Link 
+                                to="/authors" 
+                                className="inline-flex items-center text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300"
+                            >
+                                <ArrowLeftIcon className="h-5 w-5 mr-2" />
+                                Back to Authors
+                            </Link>
+                        </div>
 
-                        <div className="w-full max-w-md bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                            
-                            <div className="flex flex-col items-center py-10">
-                                <div className="w-24 h-24 mb-3 rounded-full shadow-lg flex justify-center items-center bg-green-50">
-                                    <svg className="h-20 w-20 text-green-500" data-slot="icon" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-                                    </svg>
-                                </div>
-                                
-                                <h5 className="mb-1 text-xl font-medium text-gray-900 dark:text-white">
-                                    {author["name"]}
-                                </h5>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                    <p className="flex flex-row justify-center items-center space-x-4">
-                                        <span>Gender</span>
-                                        <span className="font-semibold">{author["gender"]}</span>
-                                    </p>
-                                    <p className="flex flex-row justify-center items-center space-x-4">
-                                        <span>Age</span>
-                                        <span className="font-semibold">{author["age"]}</span>
-                                    </p>
-                                    <p className="flex flex-row justify-center items-center space-x-4">
-                                        <span>Country</span>
-                                        <span className="font-semibold">{author["country"]}</span>
-                                    </p>
-                                    <p className="flex flex-row justify-center items-center space-x-4">
-                                        <span>Genre</span>
-                                        <span className="font-semibold">{author["genre"]}</span>
-                                    </p>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                            <div className="md:flex">
+                                {/* Author Image/Icon Section */}
+                                <div className="md:flex-shrink-0 bg-gradient-to-br from-orange-50 to-blue-50 dark:from-gray-700 dark:to-gray-900 p-8 flex items-center justify-center">
+                                    <div className="h-40 w-40 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center">
+                                        <svg 
+                                            className="h-24 w-24 text-orange-500 dark:text-orange-400" 
+                                            fill="none" 
+                                            stroke="currentColor" 
+                                            viewBox="0 0 24 24" 
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path 
+                                                strokeLinecap="round" 
+                                                strokeLinejoin="round" 
+                                                strokeWidth={1.5} 
+                                                d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" 
+                                            />
+                                        </svg>
+                                    </div>
                                 </div>
 
-                                <div className="mt-4 border-t border-gray-100 py-4 w-full flex flex-row justify-center items-center space-x-4">
-                                    <svg className='h-6 w-6' data-slot="icon" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"></path>
-                                    </svg>
-                                    <span>{author["book_count"]} books.</span>
+                                {/* Author Details Section */}
+                                <div className="p-8 flex-1">
+                                    <div className="uppercase tracking-wide text-sm text-orange-600 dark:text-orange-400 font-semibold">
+                                        Author Profile
+                                    </div>
+                                    <h1 className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+                                        {author.name}
+                                    </h1>
+                                    
+                                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Gender</h3>
+                                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                                                {author.gender}
+                                            </p>
+                                        </div>
+                                        
+                                        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Age</h3>
+                                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                                                {author.age}
+                                            </p>
+                                        </div>
+                                        
+                                        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Country</h3>
+                                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                                                {author.country}
+                                            </p>
+                                        </div>
+                                        
+                                        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Genre</h3>
+                                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                                                {author.genre}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex items-center">
+                                        <BookOpenIcon className="h-6 w-6 text-orange-500 dark:text-orange-400 mr-2" />
+                                        <span className="text-lg font-medium text-gray-900 dark:text-white">
+                                            {author.book_count} {author.book_count === 1 ? 'book' : 'books'} published
+                                        </span>
+                                    </div>
                                 </div>
-                                
                             </div>
                         </div>
 
+                        {/* Books Section - You can add this if you want to show the author's books */}
+                        {/* <div className="mt-8">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                Published Books
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {[].map(book => (
+                                    <BookCard key={book.id} book={book} />
+                                ))}
+                            </div>
+                        </div> */}
                     </div>
-                }
-            </div>
-        }
-        </>
+                )
+            }
+        </div>
     )
 }
 

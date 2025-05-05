@@ -5,10 +5,10 @@ import myHeaders, { API_URL } from "../utils/api"
 import { Link } from "react-router-dom"
 import htmlDecode from "../utils/decodeHtml"
 import Spinner from "../components/spinner"
-import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline"
+import { PencilSquareIcon, TrashIcon, EyeIcon, PlusIcon } from "@heroicons/react/24/outline"
 
 function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ')
 }
 
 function Books() {
@@ -124,118 +124,138 @@ function Books() {
     return (
         <>
             {isLoading ?
-                <Spinner/>
+                <Spinner />
             :
-                <div>
-                    <div className="relative overflow-x-auto shadow-md sm:rounded-lg border border-gray-100">
-                        <div className="flex flex-column sm:flex-row flex-wrap space-y-4 sm:space-y-0 items-center justify-between p-4">
-                            <div></div>
-                            <div>
+                <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Books</h2>
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                Browse all books in the library
+                            </p>
+                        </div>
+                        <div className="mt-4 sm:mt-0">
                             <button
                                 type="button"
                                 onClick={openModal}
-                                className="rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75"
-                                >
-                                    Create Book
-                                </button>
-                            </div>
+                                className="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                            >
+                                <PlusIcon className="h-5 w-5 mr-2" />
+                                Add Book
+                            </button>
                         </div>
-                        <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                            <caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">
-                                Books
-                                <p className="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">
-                                    Browse a list of books available in the library.
-                                </p>
-                            </caption>
-                            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-gray-50 dark:bg-gray-800">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3">
-                                        Book title
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Book Title
                                     </th>
-                                    <th scope="col" className="px-6 py-3">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         ISBN
                                     </th>
-                                    <th scope="col" className="px-6 py-3">
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Author
                                     </th>
-                                    <th scope="col" className="px-6 py-3">
+                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             {bookList.map((book) =>
-                                <tr key={book["id"]} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                    <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                <tr key={book["id"]} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                         {book["name"]}
-                                    </th>
-                                    <td className="px-6 py-4">
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                         {book["isbn"]}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        {book["author"] && <span>{book["author"]["name"]}</span>}
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                        {book["author"]?.name || '-'}
                                     </td>
-                                    <td className="px-6 py-4 flex items-center space-x-2">
-                                        <button
-                                            onClick={() => handleEdit(book)}
-                                            className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                                        >
-                                            <PencilSquareIcon className="h-5 w-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(book.id)}
-                                            className="font-medium text-red-600 dark:text-red-500 hover:underline"
-                                        >
-                                            <TrashIcon className="h-5 w-5" />
-                                        </button>
-                                        <Link 
-                                            to={'/books/' + book["id"]} 
-                                            className="font-medium text-green-600 dark:text-green-500 hover:underline"
-                                        >
-                                            View
-                                        </Link>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div className="flex items-center justify-end space-x-3">
+                                            <button
+                                                onClick={() => handleEdit(book)}
+                                                className="text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300"
+                                                title="Edit"
+                                            >
+                                                <PencilSquareIcon className="h-5 w-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(book.id)}
+                                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                title="Delete"
+                                            >
+                                                <TrashIcon className="h-5 w-5" />
+                                            </button>
+                                            <Link 
+                                                to={'/books/' + book["id"]} 
+                                                className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                title="View Details"
+                                            >
+                                                <EyeIcon className="h-5 w-5" />
+                                            </Link>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
                             </tbody>
                         </table>
-                        {pagination != null &&
-                            <nav className="flex items-center flex-column flex-wrap md:flex-row justify-between p-4" aria-label="Table navigation">
-                                <span className="text-sm font-normal text-gray-500 dark:text-gray-400 mb-4 md:mb-0 block w-full md:inline md:w-auto">
-                                    Showing <span className="font-semibold text-gray-900 dark:text-white">
-                                        {pagination["from"]}-{pagination["to"]}
-                                    </span> of <span className="font-semibold text-gray-900 dark:text-white">
-                                        {pagination["total"]}
-                                    </span>
-                                </span>
-                                <ul className="inline-flex -space-x-px rtl:space-x-reverse text-sm h-8">
-                                    {pagination["links"].map((link, index) => 
-                                        <li key={index}>
-                                            <button                                                
-                                                className={
-                                                    classNames(
-                                                        "pagination-link",
-                                                        (index == 0)
-                                                        ? "rounded-s-lg"
-                                                        : "",
-                                                        (index == (pagination["links"].length -1))
-                                                        ? "rounded-e-lg"
-                                                        : "",
-                                                        link["active"]
-                                                        ? "text-blue-600 bg-blue-50"
-                                                        : ""
-                                                    )
-                                                }
-                                                onClick={() => nextPage(link)}
-                                            >
-                                                {htmlDecode(link["label"])}
-                                            </button>
-                                        </li>
-                                    )}
-                                </ul>
-                            </nav>
-                        }
                     </div>
+
+                    {pagination != null &&
+                        <div className="bg-white dark:bg-gray-800 px-6 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700">
+                            <div className="flex-1 flex justify-between sm:hidden">
+                                <button
+                                    onClick={() => nextPage(pagination.links[0])}
+                                    disabled={pagination.current_page === 1}
+                                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => nextPage(pagination.links[pagination.links.length - 1])}
+                                    disabled={pagination.current_page === pagination.last_page}
+                                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                                        Showing <span className="font-medium">{pagination.from}</span> to <span className="font-medium">{pagination.to}</span> of{' '}
+                                        <span className="font-medium">{pagination.total}</span> results
+                                    </p>
+                                </div>
+                                <div>
+                                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                        {pagination.links.map((link, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => nextPage(link)}
+                                                disabled={link.url === null}
+                                                className={classNames(
+                                                    link.active
+                                                        ? 'z-10 bg-orange-50 border-orange-500 text-orange-600 dark:bg-gray-700 dark:border-orange-400 dark:text-orange-300'
+                                                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700',
+                                                    'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
+                                                    index === 0 ? 'rounded-l-md' : '',
+                                                    index === pagination.links.length - 1 ? 'rounded-r-md' : ''
+                                                )}
+                                            >
+                                                {htmlDecode(link.label)}
+                                            </button>
+                                        ))}
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    }
 
                     <Transition appear show={isOpen} as={Fragment}>
                         <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -248,7 +268,7 @@ function Books() {
                             leaveFrom="opacity-100"
                             leaveTo="opacity-0"
                         >
-                            <div className="fixed inset-0 bg-black/25" />
+                            <div className="fixed inset-0 bg-black bg-opacity-25" />
                         </Transition.Child>
 
                         <div className="fixed inset-0 overflow-y-auto">
@@ -262,66 +282,77 @@ function Books() {
                                 leaveFrom="opacity-100 scale-100"
                                 leaveTo="opacity-0 scale-95"
                             >
-                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
                                 <Dialog.Title
                                     as="h3"
-                                    className="text-lg font-medium leading-6 text-gray-900 pb-4"
+                                    className="text-lg font-medium leading-6 text-gray-900 dark:text-white"
                                 >
-                                    {isEditMode ? 'Edit Book' : 'Create Book'}
+                                    {isEditMode ? 'Edit Book' : 'Add New Book'}
                                 </Dialog.Title>
-                                <form onSubmit={handleSubmit(onSubmitBook)} className="flex flex-col space-y-4">
-                                    <div className="mt-2 flex flex-col space-y-8 w-full">
-                                        <div className="w-full">
+                                <div className="mt-2">
+                                    <form onSubmit={handleSubmit(onSubmitBook)} className="space-y-4">
+                                        <div>
+                                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Book Title
+                                            </label>
                                             <input
+                                                id="name"
                                                 {...register("name", {required: {value: true, message: 'Required'}})}
                                                 type="text"
-                                                className="input"
-                                                placeholder="Book title" />
-                                                {errors.name && <p className="input-error">{errors.name.message}</p>}
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+                                                placeholder="Book title"
+                                            />
+                                            {errors.name && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>}
                                         </div>
 
-                                        <div className="w-full">
+                                        <div>
+                                            <label htmlFor="isbn" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                ISBN
+                                            </label>
                                             <input
-                                                {...register("isbn", {
-                                                    required: {value: true, message: 'Required'}
-                                                })}
+                                                id="isbn"
+                                                {...register("isbn", {required: {value: true, message: 'Required'}})}
                                                 type="text"
-                                                className="input"
-                                                placeholder="ISBN" />
-                                                {errors.isbn && <p className="input-error">{errors.isbn.message}</p>}
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+                                                placeholder="ISBN"
+                                            />
+                                            {errors.isbn && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.isbn.message}</p>}
                                         </div>
 
-                                        <div className="w-full">
+                                        <div>
+                                            <label htmlFor="author_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                                Author
+                                            </label>
                                             <select
+                                                id="author_id"
                                                 {...register("author_id", {required: {value: true, message: 'Required'}})}
-                                                className="input"
-                                                placeholder="Author">
-                                                    <option value="">Author</option>
-                                                    {authorList.map((e) =>
-                                                        <option key={e["id"]} value={e["id"]}>{e["name"]}</option>
-                                                    )}
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 dark:bg-gray-700 dark:text-white"
+                                            >
+                                                <option value="">Select Author</option>
+                                                {authorList.map((author) =>
+                                                    <option key={author.id} value={author.id}>{author.name}</option>
+                                                )}
                                             </select>
-                                            {errors.author_id && <p className="input-error">{errors.author_id.message}</p>}
+                                            {errors.author_id && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.author_id.message}</p>}
                                         </div>
 
-                                    </div>
-
-                                    <div className="mt-4 flex flex-row space-x-4">
-                                        <button
-                                            type="button"
-                                            className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                                            onClick={closeModal}
+                                        <div className="mt-4 flex justify-end space-x-3">
+                                            <button
+                                                type="button"
+                                                className="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
+                                                onClick={closeModal}
                                             >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="inline-flex justify-center rounded-md border border-transparent bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                                             >
-                                            {isEditMode ? 'Update' : 'Save'}
-                                        </button>
-                                    </div>
-                                </form>
+                                                {isEditMode ? 'Update Book' : 'Add Book'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
                                 </Dialog.Panel>
                             </Transition.Child>
                             </div>
