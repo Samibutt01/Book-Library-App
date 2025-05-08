@@ -72,15 +72,15 @@ function Books() {
     }
 
     const handleEdit = (book) => {
-        setCurrentBook(book)
-        setIsEditMode(true)
+        setCurrentBook(book);
+        setIsEditMode(true);
         reset({
             name: book.name,
             isbn: book.isbn,
-            author_id: book.author?.id
-        })
-        setIsOpen(true)
-    }
+            author_id: book.author?.id || ''
+        });
+        setIsOpen(true);
+    };
 
     function nextPage(link) {
         if (link["url"] != null && !link["active"]) {
@@ -89,14 +89,27 @@ function Books() {
     }
 
     function closeModal() {
-        setIsOpen(false)
-        setIsEditMode(false)
-        setCurrentBook(null)
-        reset()
+        setIsOpen(false);
+        setTimeout(() => {
+            setIsEditMode(false);
+            setCurrentBook(null);
+            reset({
+                name: '',
+                isbn: '',
+                author_id: ''
+            });
+        }, 300);
     }
 
     function openModal() {
-        setIsOpen(true)
+        setIsEditMode(false);
+        setCurrentBook(null);
+        reset({
+            name: '',
+            isbn: '',
+            author_id: ''
+        });
+        setIsOpen(true);
     }
 
     useEffect(() => {
